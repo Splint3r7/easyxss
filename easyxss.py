@@ -27,7 +27,7 @@ def log0():
 
         """) 
 
-parser = argparse.ArgumentParser(description="Hacking frame work")
+parser = argparse.ArgumentParser(description="Identify Reflection in parameters")
 
 parser.add_argument('-f','--list',
                             help = "List of urls with parameters",
