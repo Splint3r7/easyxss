@@ -1,4 +1,4 @@
-# GemScanner
+# Easyxss
 
 A simple threading based tool to find reflection in parameters of multiple URLS for cross site scripting identification.
 
