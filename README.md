@@ -34,7 +34,7 @@ Options:
 ```
 ▶ usage: easyxss.py [-h] -f LIST [-t SLACKTOKEN] -o OUTPUT
 
-Hacking frame work
+Identify Reflection in parameters
 
 optional arguments:
   -h, --help            show this help message and exit
