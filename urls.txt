@@ -1,6 +1,2 @@
+http://www.meggieschneider.com/php/detail.php?id=48
 https://public-firing-range.appspot.com/reflected/parameter/body?q=a
-https://public-firing-range.appspot.com/reflected/parameter/head?q=a
-https://public-firing-range.appspot.com/reflected/parameter/title?q=a
-https://public-firing-range.appspot.com/reflected/parameter/body_comment?q=a
-https://public-firing-range.appspot.com/reflected/parameter/tagname?q=a
-https://public-firing-range.appspot.com/reflected/parameter/attribute_unquoted?q=a
