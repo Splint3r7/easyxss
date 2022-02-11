@@ -1,8 +1,0 @@
-http://www.meggieschneider.com/php/detail.php?id=48""
-http://www.meggieschneider.com/php/detail.php?id=48%27
-http://www.meggieschneider.com/php/detail.php?id=48(
-http://www.meggieschneider.com/php/detail.php?id=48"
-http://www.meggieschneider.com/php/detail.php?id=48)
-http://www.meggieschneider.com/php/detail.php?id=48%22
-http://www.meggieschneider.com/php/detail.php?id=48\/
-http://www.meggieschneider.com/php/detail.php?id=48'

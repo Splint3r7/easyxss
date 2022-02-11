@@ -9,6 +9,7 @@ import argparse
 import concurrent.futures
 from slack import WebClient
 from slack.errors import SlackApiError
+import re
 
 # ToDO
 # [+] Support for cookies
@@ -35,7 +36,7 @@ parser = argparse.ArgumentParser(description="Identify Reflection in parameters"
 parser.add_argument('-f','--list',
                             help = "List of urls with parameters",
                             type = str,
-                            required = True)
+                            required = False)
 parser.add_argument('-t','--slacktoken',
                             help = "Slack Token",
                             type = str,
@@ -44,7 +45,7 @@ parser.add_argument('-t','--slacktoken',
 parser.add_argument('-o','--output',
                             help = "Output file",
                             type = str,
-                            required = True)
+                            required = False)
 
 args = parser.parse_args()
 
@@ -72,7 +73,7 @@ def send_to_slack(_token_ , _channel_, _message_):
             response = send_to_slack_inner(_token_ , _channel_, _message_)
         else:
             raise e
-
+            
 def generatig_params(_Url_, _Triggers_):
 
     result = []
@@ -87,6 +88,29 @@ def generatig_params(_Url_, _Triggers_):
 
     return result
 
+def cleanParams(url, triggers):
+    
+    param = ""
+    empty = ""
+
+    url = url.rstrip()
+    parsed = urlparse.urlparse(url)
+    querys = parsed.query.split("&")
+    lista = []
+    for n in querys:
+        x = re.sub("[=].*", "={}".format(empty), n)
+        lista.append(x)
+
+    result = []
+    for pairs in triggers:
+        new_query = "&".join([ "{}{}".format(query, pairs) for query in lista])
+        parsed = parsed._replace(query=new_query)
+        result.append(urlparse.urlunparse(parsed))
+
+    for i in result:
+        param = i
+
+    return param
 
 def xss(_URL_):
 
@@ -94,67 +118,41 @@ def xss(_URL_):
     'User-Agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:63.0) Gecko/20100101 Firefox/63.0'
     }
 
-    try:
-        req = requests.get(_URL_, verify=False, allow_redirects=False, timeout=7, headers=headers)
-        print(Style.DIM+Fore.WHITE+"[+] Testing "+Style.RESET_ALL+"| "+Style.BRIGHT+Fore.BLUE+_URL_+Style.RESET_ALL)
-        for payload in identifiers:
-            if payload in req.text:
-                print(Style.BRIGHT+Fore.RED+"[!] Vulnerable "+Style.RESET_ALL+"| {}".format(_URL_)+" | "+Style.BRIGHT+Fore.GREEN+"identifier: "+Style.RESET_ALL+"["+Style.DIM+Fore.YELLOW+payload+Style.RESET_ALL+"]")
-                xss_out.write(_URL_+"\n")
-                slack_data = "<!channel> Reflection Found ```{}```".format(_URL_)
-                send_to_slack(args.slacktoken, "reflected-xss", slack_data)
-    except Exception as e:
-        print("SITE IS NOT UP | {}".format(url))
-        pass
+    triggersHTMLConText = ['"><testXSS', "</x>testXSS", '"testXSS']
+
+    payloadedUrl = generatig_params(_URL_, triggersHTMLConText) 
+
+    for url in payloadedUrl:
+        try:
+            req = requests.get(url, verify=False, allow_redirects=False, timeout=7, headers=headers)
+            print(Style.DIM+Fore.WHITE+"[+] Testing "+Style.RESET_ALL+"| "+Style.BRIGHT+Fore.BLUE+url+Style.RESET_ALL)
+            for payload in identifiers:
+                if payload in req.text:
+                    print(Style.BRIGHT+Fore.RED+"[!] Vulnerable "+Style.RESET_ALL+"| {}".format(url)+" | "+Style.BRIGHT+Fore.GREEN+"identifier: "+Style.RESET_ALL+"["+Style.DIM+Fore.YELLOW+payload+Style.RESET_ALL+"]")
+                    xss_out.write(url+"\n")
+                    slack_data = "<!channel> Reflection Found ```{}```".format(url)
+                    #send_to_slack(args.slacktoken, "reflected-xss", slack_data)
+        except Exception as e:
+            print(e)
+            #print("SITE IS NOT UP | {}".format(url))
+
+def run_xss_scan(_function_, _listUrls_):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=200) as executor:
+        executor.map(_function_, _listUrls_)
 
 if __name__ == "__main__":
 
-    scan = input("[1] SQL injection \n[2] Cross Site Scripting \n[-]Select 1/2: ")
-
-    if scan == "1":
-    
-        payloads = [
-        "'", 
-        "\"", 
-        "\/", 
-        "\"\"", 
-        "%27", 
-        "%22", 
-        ")",
-        "("]
-
-        identifiers = [
-        "You have an error in your SQL syntax", 
-        "ORA-00933: SQL command not properly ended", 
-        "Microsoft SQL Native Client error", 
-        "MySQL Error: 1064", 
-        "SQL syntax error", 
-        "PostgreSQL query failed: ERROR: parser: parse error", 
-        "PSQLException", 
-        "SQLiteException", 
-        "ODBC Microsoft Access", 
-        "OracleException"]
-
-    if scan == "2":
-        payloads = ["testXSS"]
-        identifiers = ["testXSS"]
-
-
     log0()
-
+    identifiers = ['"><testXSS', "</x>testXSS", '"testXSS']
     xss_out = open(args.output, "w")
 
-    def run_xss_scan(_function_, _listUrls_):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
-            executor.map(_function_, _listUrls_)
-
+    arr = []
     with open(args.list, "r") as domain:
         lines = domain.readlines()
-
-    for line in lines:
-        line = line.strip()
-
-        urls = generatig_params(line, payloads)
-        run_xss_scan(xss, (urls))
+        for i in lines:
+            i = i.strip()
+            arr.append(i)
+        
+    run_xss_scan(xss, arr)
 
     xss_out.close()    
