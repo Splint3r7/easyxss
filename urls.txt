@@ -1,2 +1,1 @@
-http://www.meggieschneider.com/php/detail.php?id=48
-https://public-firing-range.appspot.com/reflected/parameter/body?q=a
+http://4cbc-15-237-146-57.ngrok.io/xss_testing.php?xss=1
