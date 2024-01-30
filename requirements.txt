@@ -2,3 +2,4 @@ urllib3==1.25.9
 requests==2.24.0
 colorama==0.4.4
 slackclient==2.9.3
+aiohttp>=3.9.2 # not directly required, pinned by Snyk to avoid a vulnerability
